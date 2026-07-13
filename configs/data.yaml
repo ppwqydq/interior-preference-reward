@@ -1,0 +1,21 @@
+project_root: /root/qwen_pref_reward
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  split_dir: data/splits
+  report_dir: data/reports
+  log_dir: logs
+
+input:
+  csv_pattern: "*.csv"
+  encoding: utf-8-sig
+
+output:
+  cleaned_filename: cleaned_samples.parquet
+  report_filename: cleaning_report.json
+
+split:
+  seed: 42
+  train_ratio: 0.8
+  val_ratio: 0.2

@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# 原始数据与处理结果
+data/raw/*
+data/processed/*
+data/splits/*
+data/reports/*
+
+# 保留目录结构
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/splits/.gitkeep
+!data/reports/.gitkeep
+
+# 日志与实验输出
+logs/*
+outputs/*
+eval/*
+artifacts/*
+checkpoints/*
+
+!logs/.gitkeep
+!outputs/.gitkeep
+
+# 大模型文件
+models/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+
+# 数据文件
+*.csv
+*.parquet
+*.jsonl
+
+# 临时文件
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
