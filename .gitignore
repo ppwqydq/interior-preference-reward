@@ -49,3 +49,7 @@ models/
 *.log
 .DS_Store
 Thumbs.db
+# 本地数据与外部测试原图
+data/images/
+data/raw/
+data/external/layout_test/raw/

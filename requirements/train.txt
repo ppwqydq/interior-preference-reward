@@ -1,0 +1,9 @@
+torch
+transformers
+peft
+accelerate
+qwen-vl-utils
+scikit-learn
+numpy
+PyYAML
+Pillow
