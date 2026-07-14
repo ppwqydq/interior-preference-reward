@@ -2,24 +2,34 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 .venv/
+venv/
 .env
+.env.*
 
 # IDE
 .vscode/
 .idea/
 
-# 原始数据与处理结果
+# 原始数据、图片与处理结果
 data/raw/*
+data/images/*
 data/processed/*
 data/splits/*
 data/reports/*
+data/external/layout_test/raw/*
 
 # 保留目录结构
 !data/raw/.gitkeep
+!data/images/.gitkeep
 !data/processed/.gitkeep
 !data/splits/.gitkeep
 !data/reports/.gitkeep
+!data/external/layout_test/raw/.gitkeep
 
 # 日志与实验输出
 logs/*
@@ -28,10 +38,14 @@ eval/*
 artifacts/*
 checkpoints/*
 
+# 保留目录结构
 !logs/.gitkeep
 !outputs/.gitkeep
+!eval/.gitkeep
+!artifacts/.gitkeep
+!checkpoints/.gitkeep
 
-# 大模型文件
+# 大模型、Adapter 与权重
 models/
 *.safetensors
 *.bin
@@ -44,12 +58,32 @@ models/
 *.parquet
 *.jsonl
 
+# 生成的压缩包
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+
+# 训练框架缓存
+wandb/
+runs/
+lightning_logs/
+tensorboard/
+.cache/
+huggingface/
+hf_cache/
+
 # 临时文件
 *.tmp
+*.temp
 *.log
+*.bak
+*.swp
+*~
+
+# 操作系统文件
 .DS_Store
-Thumbs.db
-# 本地数据与外部测试原图
-data/images/
-data/raw/
-data/external/layout_test/raw/
+
+# 外部测试生成报告
+data/external/layout_test/test_manifest_report.json
