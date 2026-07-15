@@ -41,6 +41,8 @@ class RewardCheckpointConfig:
     user_prompt: str
     epoch: int | None
     raw: Dict[str, Any]
+    use_room_type: bool = False
+    room_type_prefix: str = "房型"
 
 
 def resolve_checkpoint_path(
@@ -200,6 +202,21 @@ def load_reward_checkpoint_config(
         prompt.get("user", "")
     ).strip()
 
+    # 旧 Checkpoint 中没有房型设置时，
+    # 按原始双图 Baseline 方式加载。
+    use_room_type = bool(
+        prompt.get(
+            "use_room_type",
+            False,
+        )
+    )
+    room_type_prefix = str(
+        prompt.get(
+            "room_type_prefix",
+            "房型",
+        )
+    ).strip() or "房型"
+
     if not system_prompt:
         raise ValueError(
             "Checkpoint 中 system prompt 为空"
@@ -261,4 +278,6 @@ def load_reward_checkpoint_config(
         user_prompt=user_prompt,
         epoch=epoch,
         raw=raw,
+        use_room_type=use_room_type,
+        room_type_prefix=room_type_prefix,
     )

@@ -20,6 +20,7 @@ class PreferenceSample:
     empty_room_image: Path
     generated_furniture_image: Path
     label: int
+    room_type: str = "Unknown"
 
 
 def resolve_image_path(
@@ -110,6 +111,10 @@ def read_preference_manifest(
                 or f"{manifest_path.stem}:{line_number}"
             )
 
+            room_type = str(
+                row.get("room_type") or ""
+            ).strip() or "Unknown"
+
             samples.append(
                 PreferenceSample(
                     sample_id=sample_id,
@@ -118,6 +123,7 @@ def read_preference_manifest(
                         generated_furniture_image
                     ),
                     label=label,
+                    room_type=room_type,
                 )
             )
 

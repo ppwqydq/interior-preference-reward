@@ -45,6 +45,9 @@ from preference_reward.evaluation.classification import (
 from preference_reward.models.qwen_ab_reward import (
     QwenABRewardBackend,
 )
+from preference_reward.training.margin_regularization import (
+    build_margin_regularized_loss,
+)
 from preference_reward.training.scheduler import (
     EarlyStoppingController,
     LinearWarmupController,
@@ -277,6 +280,18 @@ def run_training(
         )
     )
 
+    margin_l2_weight = float(
+        training_config.get(
+            "margin_l2_weight",
+            0.0,
+        )
+    )
+
+    if margin_l2_weight < 0:
+        raise ValueError(
+            "margin_l2_weight 不能小于 0"
+        )
+
     device = torch.device(
         "cuda"
         if torch.cuda.is_available()
@@ -313,6 +328,10 @@ def run_training(
     logger.info(
         "negative_weight：%.10f",
         negative_weight,
+    )
+    logger.info(
+        "margin_l2_weight：%.10f",
+        margin_l2_weight,
     )
     logger.info(
         "batch=%d，grad_accum=%d，effective_batch=%d",
@@ -353,6 +372,18 @@ def run_training(
             ),
             user_prompt=str(
                 prompt_config["user"]
+            ),
+            use_room_type=bool(
+                prompt_config.get(
+                    "use_room_type",
+                    False,
+                )
+            ),
+            room_type_prefix=str(
+                prompt_config.get(
+                    "room_type_prefix",
+                    "房型",
+                )
             ),
             max_pixels=int(
                 model_config["max_pixels"]
@@ -757,12 +788,27 @@ def run_training(
                     )
                 )
 
-                loss = (
+                classification_loss = (
                     backend.weighted_cross_entropy(
                         ab_logits,
                         targets,
                         negative_weight,
                     )
+                )
+
+                loss_components = (
+                    build_margin_regularized_loss(
+                        classification_loss=(
+                            classification_loss
+                        ),
+                        ab_logits=ab_logits,
+                        margin_l2_weight=(
+                            margin_l2_weight
+                        ),
+                    )
+                )
+                loss = (
+                    loss_components.total_loss
                 )
 
                 (
@@ -882,6 +928,8 @@ def run_training(
                     inputs,
                     targets,
                     ab_logits,
+                    classification_loss,
+                    loss_components,
                     loss,
                 )
 

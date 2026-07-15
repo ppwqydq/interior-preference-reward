@@ -1,0 +1,88 @@
+experiment:
+  name: qwen3_vl_8b_layout_ab_512_margin_l2
+  seed: 42
+paths:
+  model_path: /root/autodl-tmp/models/Qwen3-VL-8B-Instruct
+  train_manifest: data/splits/train.jsonl
+  val_manifest: data/splits/val.jsonl
+  output_dir: outputs/qwen3_vl_8b_layout_ab_512_margin_l2
+  log_dir: logs
+model:
+  max_pixels: 262144
+  attn_implementation: ''
+  gradient_checkpointing: true
+prompt:
+  system: 你是一个室内家具布局结果的历史用户反馈预测模型。你的任务是根据原始空房间图和生成家具布局图，判断该布局结果更可能对应明确点赞还是明确点踩。
+  user: '第一张图是原始空房间图，
+
+    第二张图是在该空间中生成的家具布局结果。
+
+
+    请比较两张图，并判断第二张图更可能对应哪一类历史用户反馈。
+
+
+    重点关注：
+
+    1. 家具的位置、尺度和朝向是否合理；
+
+    2. 家具之间是否碰撞、重叠或过度拥挤；
+
+    3. 门、窗和主要通道是否被遮挡；
+
+    4. 家具布局是否符合房间结构和透视关系；
+
+    5. 整体空间是否自然、完整且具有可用性。
+
+
+    只输出 A 或 B。
+
+
+    A = 明确点赞 / 满意
+
+    B = 明确点踩 / 不满意'
+  use_room_type: false
+lora:
+  r: 8
+  alpha: 16
+  dropout: 0.1
+  target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+training:
+  epochs: 20
+  batch_size: 1
+  eval_batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 1.0e-05
+  minimum_learning_rate: 1.0e-06
+  warmup_steps: 50
+  weight_decay: 0.0
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1.0e-08
+  max_gradient_norm: 1.0
+  negative_weight: auto
+  log_every_optimizer_steps: 10
+  lr_scheduler:
+    type: reduce_on_plateau
+    monitor: roc_auc
+    mode: max
+    factor: 0.5
+    patience: 2
+    threshold: 0.002
+  early_stopping:
+    enabled: true
+    monitor: roc_auc
+    mode: max
+    minimum_epochs: 4
+    patience: 5
+    min_delta: 0.002
+  margin_l2_weight: 0.01
+evaluation:
+  threshold: 0.5
+  ece_bins: 10

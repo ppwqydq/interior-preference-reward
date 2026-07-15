@@ -239,6 +239,12 @@ def load_qwen_ab_backend(
         device=device,
         system_prompt=checkpoint.system_prompt,
         user_prompt=checkpoint.user_prompt,
+        use_room_type=(
+            checkpoint.use_room_type
+        ),
+        room_type_prefix=(
+            checkpoint.room_type_prefix
+        ),
         max_pixels=checkpoint.max_pixels,
         token_a=token_a,
         token_b=token_b,
