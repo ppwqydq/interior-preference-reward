@@ -87,3 +87,7 @@ hf_cache/
 
 # 外部测试生成报告
 data/external/layout_test/test_manifest_report.json
+# 本地外部评估数据和生成报告
+/data/external/dataset_nft_syn
+/data/external/layout_test100/
+/reports/stakeholder_figures
