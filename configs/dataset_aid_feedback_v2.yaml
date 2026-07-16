@@ -1,0 +1,29 @@
+paths:
+  raw_dir: data/raw
+  empty_room_image_dir: data/images/aid_feedback_v2/original
+  generated_furniture_image_dir: data/images/aid_feedback_v2/generated
+  output_manifest: data/processed/aid_feedback_v2.jsonl
+  build_report: data/reports/aid_feedback_v2_build_report.json
+  failed_downloads: data/reports/aid_feedback_v2_failed_downloads.jsonl
+  log_dir: logs
+
+csv:
+  encoding: utf-8-sig
+  recursive_pattern: aid_feedback_data.csv
+
+columns:
+  behavior: 反馈行为原始值
+  empty_room_url: 用户原图
+  generated_furniture_url: 生成图
+
+labels:
+  thumbs up: 1
+  dislike: 0
+
+download:
+  workers: 16
+  connect_timeout_seconds: 10
+  read_timeout_seconds: 60
+  retries: 3
+  max_image_size_mb: 40
+  user_agent: interior-preference-reward/1.0
