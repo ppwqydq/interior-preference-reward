@@ -276,3 +276,58 @@ Pointwise ROC-AUC：0.5873
 模型在 Epoch 4 达到最佳结果，之后训练损失继续下降，但验证指标逐步恶化，并在 Epoch 9 触发 Early Stopping，说明继续增加训练轮数不能解决过拟合问题。
 
 当前模型更适合同一参考图下多个生成结果之间的候选排序，而不是使用统一阈值判断不同房间的绝对质量。下一阶段将使用现有 100 组 `R / GOOD / BAD` 数据，从 Qwen3-VL-8B 基模重新训练专项布局 Reward Model，并按 Pair 隔离训练集和验证集。
+
+## Layout100 专项 Pairwise Reward 结果
+
+本阶段将训练目标从单张图片的 Like/Dislike 分类，改为直接学习同一个空房间下 GOOD 与 BAD 的相对排序。专项数据共 100 组，每组包含空房间 `R`、较好布局 `GOOD` 和较差布局 `BAD`：
+
+```text
+Train：80 Pair
+Validation：20 Pair
+```
+
+模型使用 Bradley–Terry Pairwise Loss，直接优化：
+
+```text
+reward(R, GOOD) > reward(R, BAD)
+```
+
+本阶段比较了两种 Reward 结构：
+
+- `P1`：复用 Qwen3-VL 原有 A/B Token Logit 计算 Reward；
+- `P2`：在最后一层 Hidden State 后增加独立 Scalar Reward Head。
+
+固定验证集结果：
+
+| 模型 | 最佳 Epoch | 正确数 | Pair Accuracy | Pairwise NLL |
+|---|---:|---:|---:|---:|
+| P1 A/B Logit | 23 | 18 / 20 | 90.00% | 0.3063 |
+| P2 Scalar Head | 23 | 18 / 20 | 90.00% | 0.1853 |
+
+P1 和 P2 在验证集上的错误存在一定互补性。P1 判断错误的 Pair 为 `10` 和 `75`，P2 判断错误的 Pair 为 `63` 和 `75`，其中 Pair 75 是两个模型共同判断错误的困难样本。
+
+新增外部数据最初包含 41 组完整 Pair，但人工检查发现部分 Reference 并非空房间，或 Reference、GOOD、BAD 的房间结构和相机视角不一致。此类数据不能有效评估布局排序能力，因此首次 41 组评估结果不作为正式结论。按任务一致性要求筛选后，最终保留 18 组有效 Pair。
+
+筛选后的测试结果：
+
+| 模型 | 正确数 | Pair Accuracy | Pairwise NLL | 最小 Margin |
+|---|---:|---:|---:|---:|
+| P1 A/B Logit | 18 / 18 | 100.00% | 0.0318 | +1.1898 |
+| P2 Scalar Head | 17 / 18 | 94.44% | 1.0475 | -18.6628 |
+
+P1 在 18 组任务一致性测试数据上全部排序正确，且最小 GOOD-BAD Margin 仍为正。P2 虽然平均 Margin 更大，但出现了一次高置信反向排序，说明当前小数据条件下独立 Scalar Head 仍容易过拟合和过度自信。
+
+当前专项布局主模型更新为：
+
+```text
+Qwen3-VL-8B-Instruct + LoRA
+Pairwise Bradley–Terry
+P1 A/B Logit Reward
+512 分辨率
+LoRA Rank 8
+Epoch 23
+```
+
+当前结果说明，直接使用同一空房间下的 GOOD/BAD Pair 训练，比通过统一 Like/Dislike 分数间接学习布局排序更符合实际应用目标。由于专项训练集仅有 100 组、有效外部测试集仅有 18 组，该结果应视为技术路线的阶段性验证，不能推断模型在所有真实场景中均达到 100% 准确率。
+
+下一阶段优先扩充同房间、同视角、布局差异明确的 Pairwise 数据，重点增加家具遮挡门窗、阻塞通道、朝向错误、间距不足以及两个方案差异较小的困难样本。P1 继续作为主 Reward Model，P2 保留为数据规模扩大后的对比实验分支。
