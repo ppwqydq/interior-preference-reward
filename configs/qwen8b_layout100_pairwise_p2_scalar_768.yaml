@@ -1,0 +1,89 @@
+experiment:
+  name: qwen3_vl_8b_layout100_pairwise_p2_scalar_768
+  seed: 42
+
+paths:
+  model_path: /root/autodl-tmp/models/Qwen3-VL-8B-Instruct
+  train_manifest: data/splits/layout100_curated/train_pairwise.jsonl
+  val_manifest: data/splits/layout100_curated/val_pairwise.jsonl
+  output_dir: outputs/qwen3_vl_8b_layout100_pairwise_p2_scalar_768
+  log_dir: logs
+
+model:
+  score_type: scalar_head
+  max_pixels: 589824
+  attn_implementation: ''
+  gradient_checkpointing: true
+  scalar_head:
+    intermediate_size: 1024
+
+prompt:
+  system: 你是一个室内家具布局质量判断模型。请根据原始房间参考图，判断候选家具布局是否合理、自然且可用。
+  user: '第一张图是原始房间参考图，
+
+    第二张图是该空间中的家具布局结果。
+
+
+    请比较两张图，重点判断：
+
+    1. 家具的位置、尺度和朝向是否合理；
+
+    2. 家具之间是否碰撞、重叠或过度拥挤；
+
+    3. 门、窗和主要通道是否被遮挡或阻断；
+
+    4. 布局是否符合房间结构和透视关系；
+
+    5. 整体空间是否自然、完整且可用。
+
+
+    A = GOOD / 布局合理
+
+    B = BAD / 布局不合理
+
+
+    只输出 A 或 B。'
+
+lora:
+  r: 8
+  alpha: 16
+  dropout: 0.1
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+training:
+  epochs: 30
+  pair_batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 1.0e-05
+  reward_head_learning_rate: 5.0e-05
+  minimum_learning_rate: 1.0e-06
+  minimum_reward_head_learning_rate: 5.0e-06
+  warmup_steps: 5
+  temperature: 1.0
+  weight_decay: 0.0
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1.0e-08
+  max_gradient_norm: 1.0
+  log_every_optimizer_steps: 2
+
+  lr_scheduler:
+    factor: 0.5
+    patience: 2
+    threshold: 0.002
+
+  early_stopping:
+    enabled: true
+    minimum_epochs: 5
+    patience: 6
+    min_delta: 0.002
+
+evaluation:
+  pair_batch_size: 1

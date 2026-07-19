@@ -180,7 +180,7 @@ def load_reward_checkpoint_config(
         )
 
     negative_weight = float(
-        raw.get("negative_weight", 1.0)
+        raw["negative_weight"]
     )
 
     if negative_weight <= 0:
